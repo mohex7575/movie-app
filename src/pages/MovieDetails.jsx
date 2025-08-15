@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { getMovieDetails } from '../utils/api';
+import { useParams, Link } from 'react-router-dom';
+import { getMovieDetails, getPosterUrl } from '../utils/api';
 import Spinner from '../components/Spinner';
 
 const MovieDetails = () => {
@@ -15,7 +15,7 @@ const MovieDetails = () => {
         const data = await getMovieDetails(id);
         setMovie(data);
       } catch (err) {
-        setError('فشل في جلب تفاصيل الفيلم. حاول مرة أخرى.');
+        setError('حدث خطأ أثناء جلب تفاصيل الفيلم');
       } finally {
         setLoading(false);
       }
@@ -29,24 +29,58 @@ const MovieDetails = () => {
   if (!movie) return <p>لا يوجد فيلم بهذا المعرف</p>;
 
   return (
-    <div className="movie-details">
-      <div className="movie-poster">
+    <div className="movie-details-container">
+      <Link to="/" className="back-button">
+        ← العودة للقائمة
+      </Link>
+
+      <div className="movie-details">
         <img 
-          src={movie.Poster !== 'N/A' ? movie.Poster : 'https://via.placeholder.com/300x450'} 
-          alt={movie.Title} 
+          src={getPosterUrl(movie.poster_path, 'w500')} 
+          alt={movie.title}
+          className="movie-poster"
         />
-      </div>
-      <div className="movie-info">
-        <h1>{movie.Title} ({movie.Year})</h1>
-        <p><strong>التصنيف:</strong> {movie.Rated}</p>
-        <p><strong>تاريخ الإصدار:</strong> {movie.Released}</p>
-        <p><strong>المدة:</strong> {movie.Runtime}</p>
-        <p><strong>النوع:</strong> {movie.Genre}</p>
-        <p><strong>المخرج:</strong> {movie.Director}</p>
-        <p><strong>الكتاب:</strong> {movie.Writer}</p>
-        <p><strong>الممثلون:</strong> {movie.Actors}</p>
-        <p><strong>القصة:</strong> {movie.Plot}</p>
-        <p><strong>التقييم:</strong> {movie.imdbRating}/10 (IMDb)</p>
+        
+        <div className="movie-info">
+          <h1>{movie.title} ({movie.release_date && movie.release_date.substring(0,4)})</h1>
+          
+          {movie.tagline && <p className="tagline">{movie.tagline}</p>}
+          
+          <div className="rating">
+            ⭐ {movie.vote_average?.toFixed(1)}/10 ({movie.vote_count} تقييمات)
+          </div>
+          
+          <p><strong>المدة:</strong> {movie.runtime} دقيقة</p>
+          <p><strong>النوع:</strong> {movie.genres?.map(g => g.name).join('، ')}</p>
+          
+          {movie.credits?.crew.find(c => c.job === 'Director') && (
+            <p><strong>المخرج:</strong> {movie.credits.crew.find(c => c.job === 'Director').name}</p>
+          )}
+          
+          <h3>القصة:</h3>
+          <p className="overview">{movie.overview || 'لا يوجد وصف متوفر'}</p>
+          
+          {movie.credits?.cast.length > 0 && (
+            <>
+              <h3>أبرز الممثلين:</h3>
+              <div className="cast">
+                {movie.credits.cast.slice(0, 5).map(actor => (
+                  <div key={actor.id} className="actor">
+                    {actor.profile_path ? (
+                      <img 
+                        src={getPosterUrl(actor.profile_path, 'w185')} 
+                        alt={actor.name}
+                      />
+                    ) : (
+                      <div className="no-photo">{actor.name}</div>
+                    )}
+                    <span>{actor.name}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

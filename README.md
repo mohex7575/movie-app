@@ -13,5 +13,6 @@
 
 1. استنسخ المشروع:
    ```bash
-   git clone https://github.com/mohex7575/movie-app.git
+   https://github.com/mohex7575/movie-app.git
+   git clone 
    cd movie-app
